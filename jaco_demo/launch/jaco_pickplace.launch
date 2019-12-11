@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- Run MTC pick and place -->
+  <node name="mtc_tutorial" pkg="jaco_demo" type="jaco_demo" output="screen">
+    <param name="execute" value="true" />
+    <rosparam command="load" file="$(find jaco_demo)/config/jaco_config.yaml" />
+  </node>
+</launch>
