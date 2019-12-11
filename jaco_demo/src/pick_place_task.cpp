@@ -233,8 +233,9 @@ void PickPlaceTask::init() {
 			ROS_INFO(" INSIDE CLOSE HAND");
                         ROS_INFO_STREAM("HAND GROUP NAME : "<< hand_group_name_);
 			auto stage = std::make_unique<stages::MoveTo>("close hand", sampling_planner);
-			stage->properties().property("group").configureInitFrom(Stage::PARENT, "hand");
-//			stage->setGroup(hand_group_name_);
+			stage->properties().property("group").configureInitFrom(Stage::PARENT, "hand"); 
+			//Edit: Instead of hand_group_name_ hand is given
+                        //stage->setGroup(hand_group_name_);
 			stage->setGoal(hand_close_pose_);
 			grasp->insert(std::move(stage));
 			ROS_INFO_STREAM("PARENT close hand : "<<Stage::PARENT);
@@ -364,6 +365,7 @@ void PickPlaceTask::init() {
 		 *****************************************************/
 		{
 			auto stage = std::make_unique<stages::MoveTo>("open hand", sampling_planner);
+			//Edit: Instead of hand_group_name_,  hand is given
 			stage->properties().property("group").configureInitFrom(Stage::PARENT, "hand");
 //			stage->setGroup(hand_group_name_);
 			stage->setGoal(hand_open_pose_);
