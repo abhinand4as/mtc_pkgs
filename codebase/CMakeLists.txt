@@ -28,4 +28,6 @@ target_link_libraries(modular_tutorial ${catkin_LIBRARIES})
 add_executable(pick_place_tutorial src/pick_place_tutorial.cpp)
 target_link_libraries(pick_place_tutorial ${catkin_LIBRARIES})
 
+add_executable(mtc_test src/mtc_test.cpp)
+target_link_libraries(mtc_test ${catkin_LIBRARIES})
 
