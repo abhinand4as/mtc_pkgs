@@ -15,11 +15,49 @@
 #include <moveit/task_constructor/solvers/pipeline_planner.h>
 #include <moveit/task_constructor/stages/move_relative.h>
 #include <moveit/task_constructor/stages/move_to.h>
-
+#include <moveit/task_constructor/stages/modify_planning_scene.h>
+#include <moveit/planning_scene_interface/planning_scene_interface.h>
 //TF2
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 using namespace moveit::task_constructor;
+
+void spawnObject() {
+	moveit::planning_interface::PlanningSceneInterface psi;
+
+	moveit_msgs::CollisionObject o;
+	o.id = "object";
+	o.header.frame_id = "world";
+	o.primitive_poses.resize(1);
+	o.primitive_poses[0].position.x = -0.2;
+	o.primitive_poses[0].position.y = 0.13;
+	o.primitive_poses[0].position.z = 0.12;
+	o.primitive_poses[0].orientation.w = 1.0;
+	o.primitives.resize(1);
+	o.primitives[0].type = shape_msgs::SolidPrimitive::CYLINDER;
+	o.primitives[0].dimensions.resize(2);
+	o.primitives[0].dimensions[0] = 0.23;
+	o.primitives[0].dimensions[1] = 0.03;
+	psi.applyCollisionObject(o);
+}
+
+//If generator stage is Fixed State, then it should be used following method.
+void spawnObjectFixed(const planning_scene::PlanningScenePtr& scene) {
+	moveit_msgs::CollisionObject o;
+	o.id = "object";
+	o.header.frame_id = "world";
+	o.primitive_poses.resize(1);
+	o.primitive_poses[0].position.x = 0.45;
+	o.primitive_poses[0].position.y = 0.23;
+	o.primitive_poses[0].position.z = 0.3;
+	o.primitive_poses[0].orientation.w = 1.0;
+	o.primitives.resize(1);
+	o.primitives[0].type = shape_msgs::SolidPrimitive::CYLINDER;
+	o.primitives[0].dimensions.resize(2);
+	o.primitives[0].dimensions[0] = 0.23;
+	o.primitives[0].dimensions[1] = 0.03;
+	scene->processCollisionObjectMsg(o);
+}
 
 Task createTask() {
 	Task t;
@@ -72,6 +110,7 @@ Task createTask() {
    	{
        auto& state = scene->getCurrentStateNonConst();
        state.setToDefaultValues(state.getJointModelGroup(group), "ready");{}
+       spawnObjectFixed(scene);  
 
        auto fixed = std::make_unique<stages::FixedState>("initial state");
        fixed->setState(scene);
@@ -85,6 +124,74 @@ Task createTask() {
 	// 	auto initial = std::make_unique<stages::CurrentState>("current state");
 	// 	initial_stage = initial.get();
 	// 	t.add(std::move(initial));
+	// }
+
+    //++++ Generate Grasp Pose ++++
+
+	// {
+	// 	// Sample grasp pose
+	// 	auto stage = std::make_unique<stages::GenerateGraspPose>("generate grasp pose");
+	// 	stage->properties().configureInitFrom(Stage::PARENT);
+	// 	stage->properties().set("marker_ns", "grasp_pose");
+	// 	stage->setPreGraspPose(hand_open_pose_);
+	// 	stage->setObject(object);
+	// 	stage->setAngleDelta(M_PI / 12);
+	// 	stage->setMonitoredStage(current_state);  // Hook into current state
+
+	// 	// Compute IK
+	// 	auto wrapper = std::make_unique<stages::ComputeIK>("grasp pose IK", std::move(stage));
+	// 	wrapper->setMaxIKSolutions(8);
+	// 	wrapper->setMinSolutionDistance(1.0);
+	// 	wrapper->setIKFrame(grasp_frame_transform_, hand_frame_);
+	// 	wrapper->properties().configureInitFrom(Stage::PARENT, { "eef", "group" });
+	// 	wrapper->properties().configureInitFrom(Stage::INTERFACE, { "target_pose" });
+	// 	grasp->insert(std::move(wrapper));
+	// }
+
+	// //OR
+
+	// {
+	// 	auto gengrasp = std::make_unique<stages::GenerateGraspPose>("generate grasp pose");
+	// 	gengrasp->properties().configureInitFrom(Stage::PARENT);
+	// 	gengrasp->setPreGraspPose("open");
+	// 	gengrasp->setObject("object");
+	// 	gengrasp->setAngleDelta(M_PI / 10.);
+	// 	gengrasp->setMonitoredStage(initial_stage);
+
+	// 	auto filter = std::make_unique<stages::PredicateFilter>("filtered");
+	// 	gengrasp->properties().exposeTo(filter->properties(), { "eef" });
+	// 	filter->properties().configureInitFrom(Stage::PARENT);
+	// 	filter->insert(std::move(gengrasp));
+	// 	filter->setPredicate([](const SolutionBase& s, std::string& comment) {
+	// 		bool accept = s.cost() < 2;
+	// 		if (!accept)
+	// 			comment += " (rejected)";
+	// 		return accept;
+	// 	});
+
+	// 	auto ik = std::make_unique<stages::ComputeIK>("compute ik", std::move(filter));
+	// 	PropertyMap& props = ik->properties();
+	// 	props.configureInitFrom(Stage::PARENT, { "group", "eef", "default_pose" });
+	// 	props.configureInitFrom(Stage::INTERFACE, { "target_pose" });  // derived from child's solution
+	// 	ik->setIKFrame(Eigen::Translation3d(0, 0, .05) * Eigen::AngleAxisd(-0.5 * M_PI, Eigen::Vector3d::UnitY()),
+	// 	               "panda_link8");
+	// 	ik->setMaxIKSolutions(1);
+	// 	t.add(std::move(ik));
+	// }
+
+	// //OR
+
+	// {
+	// 	// grasp generator
+	// 	auto grasp_generator = new stages::GenerateGraspPose("generate grasp pose");
+	// 	grasp_generator->setAngleDelta(.2);
+	// 	grasp_generator->setPreGraspPose("open");
+	// 	grasp_generator->setGraspPose("close");
+	// 	grasp_generator->setMonitoredStage(initial_stage);
+
+	// 	auto grasp = std::make_unique<stages::SimpleGrasp>(std::unique_ptr<MonitoringGenerator>(grasp_generator));
+	// 	grasp->setIKFrame(Eigen::Translation3d(.03, 0, 0), "panda_link8");
+	// 	grasp->setMaxIKSolutions(8);
 	// }
 
 	/****************************************************
@@ -178,24 +285,114 @@ Task createTask() {
  //    }
 
 	/**
-	 * @brief Method 1: PointStamped
+	 * @brief Method 2: PointStamped
 	 * @brief This represents a Point with reference coordinate frame and timestamp.
 	 * @brief This contains the position of a point in free space. 
 	 * @brief with same orientation.
 	 * @brief Point  point (x, y, z)
 	 */
 
-    {
-		auto stage = std::make_unique<stages::MoveTo>("moveto", cartesian);
-		stage->setGroup(group);
+  //   {
+		// auto stage = std::make_unique<stages::MoveTo>("moveto", cartesian);
+		// stage->setGroup(group);
 
-		geometry_msgs::PointStamped pose;
-		pose.header.frame_id = "world";
-		pose.point.x = 0.4;
-		pose.point.z = 0.4;
-		stage->setGoal(pose);
-		t.add(std::move(stage));
-   	}
+		// geometry_msgs::PointStamped pose;
+		// pose.header.frame_id = "world";
+		// pose.point.x = 0.4;
+		// pose.point.z = 0.4;
+		// stage->setGoal(pose);
+		// t.add(std::move(stage));
+  //  	}
+
+	/**
+	 * @brief Method 3:  named_joint_pose
+	 * @brief This represents a pose defined in SRDF.
+	 */
+
+
+	// {
+	// 	auto move = std::make_unique<stages::MoveTo>("Open gripper", pipeline);
+	// 	move->restrictDirection(stages::MoveTo::FORWARD);
+	// 	move->properties().property("group").configureInitFrom(Stage::PARENT, "eef");
+	// 	move->setGoal("open");
+	// 	t.add(std::move(move));
+	// }
+
+	/**
+	 * @brief Method 4:  std::map<std::string, double>& joints
+	 * @brief This represents a vector of joints and values.
+	 */
+
+	// {
+	// 	auto stage = std::make_unique<stages::MoveTo>("joints", joint_interpolation);
+	// 	std::map<std::string, double> joints;
+	// 	joints["panda_joint7"] = 1.8;
+	// 	stage->setGroup(group);
+	// 	stage->setGoal(joints);
+	// 	t.add(std::move(stage));
+	// }
+
+	//++++ Modify Planning Scene ++++
+
+	/**
+	 * @brief Method 1:  attachObject
+	 * @brief attachObject(const std::string& object, const std::string& link);
+	 * @brief 
+	 */
+
+	// {
+	// 	auto move = std::make_unique<stages::ModifyPlanningScene>("attach object");
+	// 	move->restrictDirection(stages::ModifyPlanningScene::FORWARD);
+	// 	move->attachObject("object", "panda_link8");
+	// 	t.add(std::move(move));
+	// }
+
+//to see the difference of attach and detach
+  //   {
+		// auto stage = std::make_unique<stages::MoveTo>("moveto", cartesian);
+		// stage->setGroup(group);
+
+		// geometry_msgs::PointStamped pose;
+		// pose.header.frame_id = "world";
+		// pose.point.x = 0.5;
+		// pose.point.z = 0.5;
+		// stage->setGoal(pose);
+		// t.add(std::move(stage));
+  //  	}
+
+
+
+	/**
+	 * @brief Method 2:  detachObject
+	 * @brief detachObject(const std::string& object, const std::string& link);
+	 * @brief 
+	 */
+
+	// {
+ //        auto stage = std::make_unique<stages::ModifyPlanningScene>("dettach object");
+ //        stage->detachObject("object", "panda_link8");
+ //        t.add(std::move(stage));
+ //    }
+
+	/**
+	 * @brief Method 3:  allowCollisions
+	 * @brief Normal method
+	 * @brief allowCollisions(const Names& first, const Names& second, bool allow); 
+	 * @brief allowCollisions(const std::string& first, const std::string& second, bool allow)
+	 * @brief allowCollisions(const std::string& object, bool allow)
+	 */
+
+	// {
+	// 	auto move = std::make_unique<stages::ModifyPlanningScene>("allow object collision");
+	// 	move->restrictDirection(stages::ModifyPlanningScene::FORWARD);
+
+	// 	move->allowCollisions(
+	// 	    "object", t.getRobotModel()->getJointModelGroup(eef)->getLinkModelNamesWithCollisionGeometry(), true);
+	// 	t.add(std::move(move));
+	// }
+
+
+
 
 	return t;
 }
