@@ -31,7 +31,7 @@ table_dimensions: [0.5, 1.0, 0.1]  # [length, width, height]
 table_pose: [0.22, 0.46, -0.001, 0, 0, 0]
 
 # Gripper grasp frame transform [x,y,z,r,p,y]
-grasp_frame_transform: [0, 0, 0.0, -1.571, 0.0, 0.0]
+grasp_frame_transform: [0, 0, 0, -1.57, 0.0, 0.0]
 
 # Place pose [x,y,z,r,p,y]
 place_pose: [0.2, 0.5, 0, 0, 0, 0]

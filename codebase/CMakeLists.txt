@@ -34,3 +34,5 @@ target_link_libraries(mtc_test ${catkin_LIBRARIES})
 add_executable(pick_place_tutorial2 src/pick_place_tutorial2.cpp)
 target_link_libraries(pick_place_tutorial2 ${catkin_LIBRARIES})
 
+add_executable(pouring src/pouring_sample.cpp)
+target_link_libraries(pouring ${catkin_LIBRARIES})
