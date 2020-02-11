@@ -7,3 +7,4 @@ roslaunch jaco_demo jaco_demo.launch
 ```bash
 roslaunch jaco_demo jaco_pickplace.launch 
 ```
+![Image of Jaco demo ](https://github.com/abhinand4as/mtc_pkgs/blob/master/jaco_demo/doc/jaco_meshObject.png)
