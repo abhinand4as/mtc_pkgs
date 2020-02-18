@@ -51,6 +51,10 @@
 #include "geometric_shapes/shape_operations.h"
 #include <geometric_shapes/shape_extents.h>
 
+//TF2
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+
+
 constexpr char LOGNAME[] = "moveit_task_constructor_demo";
 float mesh_height = 0;
 
@@ -153,17 +157,21 @@ moveit_msgs::CollisionObject createcube() {
 void createmesh() {
 	const double table_height= 0;
 
+	tf2::Quaternion orientation;
+	orientation.setRPY(0, 0 , M_PI/2);
+
 	geometry_msgs::PoseStamped bottle;
 	bottle.header.frame_id= "world";
 	bottle.pose.position.x= 0.4;
 	bottle.pose.position.y= 0.15;
 	bottle.pose.position.z= table_height;
-	bottle.pose.orientation.w= 1.0;
+	bottle.pose.orientation= tf2::toMsg(orientation);
 
 	moveit::planning_interface::PlanningSceneInterface psi;
 	std::vector<moveit_msgs::CollisionObject> objects;
 	// mtc_pour::setupObjects(objs, bottle, glass, "package://mtc_pour/meshes/small_bottle.stl");
-	const std::string bottle_mesh="package://jaco_demo/meshes/bottle.stl";
+	// const std::string bottle_mesh="package://jaco_demo/meshes/bottle.stl";
+	const std::string bottle_mesh="package://jaco_demo/meshes/camera3.stl";
 
 	{
 		// add bottle

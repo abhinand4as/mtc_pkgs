@@ -202,13 +202,13 @@ void PickPlaceTask::init() {
 			stage->properties().set("marker_ns", "grasp_pose");
 			stage->setPreGraspPose(hand_open_pose_);
 			stage->setObject(object);
-			stage->setAngleDelta(M_PI / 16);
+			stage->setAngleDelta(M_PI / 2);
 			stage->setMonitoredStage(current_state);  // Hook into current state
 
 			// Compute IK
 			auto wrapper = std::make_unique<stages::ComputeIK>("grasp pose IK", std::move(stage));
 			wrapper->setMaxIKSolutions(8);
-			wrapper->setIgnoreCollisions(true);
+			wrapper->setIgnoreCollisions(false);
 			wrapper->setMinSolutionDistance(1.0);
 			wrapper->setIKFrame(grasp_frame_transform_, hand_frame_);
 			wrapper->properties().configureInitFrom(Stage::PARENT, { "eef", "group" });
