@@ -44,6 +44,7 @@
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <rosparam_shortcuts/rosparam_shortcuts.h>
 #include <tf2_ros/transform_broadcaster.h>
+#include <std_msgs/Float32MultiArray.h>
 
 // Mesh
 #include "geometric_shapes/shapes.h"
@@ -53,7 +54,22 @@
 
 //TF2
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+ros::Subscriber box_pose_sub;
+float pose[3]; //{1., 2., 3.};
 
+void poseCallback(const std_msgs::Float32MultiArray::ConstPtr& array)
+{
+	ROS_INFO("INSIDE CB");
+	int i = 0;
+	for(std::vector<float>::const_iterator it = array->data.begin(); it != array->data.end(); ++it) {
+		pose[i] = *it;
+	//	ROS_INFO("Position[%d]: [%f]",i, pose[i]);
+		i++;
+		
+	}
+
+	return;
+}
 
 constexpr char LOGNAME[] = "moveit_task_constructor_demo";
 float mesh_height = 0;
@@ -158,20 +174,20 @@ void createmesh() {
 	const double table_height= 0;
 
 	tf2::Quaternion orientation;
-	orientation.setRPY(0, 0 , M_PI/2);
+	orientation.setRPY(0, 0 , 0);
 
 	geometry_msgs::PoseStamped bottle;
 	bottle.header.frame_id= "world";
-	bottle.pose.position.x= 0.4;
-	bottle.pose.position.y= 0.15;
-	bottle.pose.position.z= table_height;
-	bottle.pose.orientation= tf2::toMsg(orientation);
+	bottle.pose.position.x= pose[0];//0.4;
+	bottle.pose.position.y= pose[1];//0.15;
+	bottle.pose.position.z= pose[2];//table_height;
+	// bottle.pose.orientation= tf2::toMsg(orientation);
 
 	moveit::planning_interface::PlanningSceneInterface psi;
 	std::vector<moveit_msgs::CollisionObject> objects;
 	// mtc_pour::setupObjects(objs, bottle, glass, "package://mtc_pour/meshes/small_bottle.stl");
 	// const std::string bottle_mesh="package://jaco_demo/meshes/bottle.stl";
-	const std::string bottle_mesh="package://jaco_demo/meshes/camera3.stl";
+	const std::string bottle_mesh="package://jaco_demo/meshes/camera4.stl";
 
 	{
 		// add bottle
@@ -196,38 +212,48 @@ int main(int argc, char** argv) {
 	ROS_INFO_NAMED(LOGNAME, "Init moveit_task_constructor_demo");
 	ros::init(argc, argv, "moveit_task_constructor_demo");
 	ros::NodeHandle nh;
-	ros::AsyncSpinner spinner(1);
+
+	box_pose_sub = nh.subscribe("centroid", 10, poseCallback);
+
+	ros::AsyncSpinner spinner(2);
 	spinner.start();
 
 	// Add table and object to planning scene
 	ros::Duration(1.0).sleep();  // Wait for ApplyPlanningScene service
 	moveit::planning_interface::PlanningSceneInterface psi;
 	ros::NodeHandle pnh("~");
-	
+	ROS_INFO_STREAM("POSE X="<<pose[0]<<"\n    Y="<<pose[1]<<"\n    Z="<<pose[2]);
 	if (pnh.param("spawn_table", true))
 		spawnObject(psi, createTable());
 	// spawnObject(psi, createObject());
     // spawnObject(psi, createcube());
-	createmesh();
+	do {
+		ROS_INFO("INSIDE DO");
+		ros::Duration(1.0).sleep();
+	} while(pose[0] ==0 && pose[1] ==0 && pose[2] ==0 );
 
-	// Construct and run pick/place task
-	moveit_task_constructor_demo::PickPlaceTask pick_place_task("pick_place_task", nh);
-	pick_place_task.mesh_height = mesh_height;
-	pick_place_task.loadParameters();
-	pick_place_task.init();
-	ROS_INFO("DEBUG: INIT COMPLETED");
-	if (pick_place_task.plan()) {
-		ROS_INFO_NAMED(LOGNAME, "Planning succeded");
-		if (pnh.param("execute", false)) {
-			pick_place_task.execute();
+		ROS_INFO_STREAM("POSE X="<<pose[0]<<"\n    Y="<<pose[1]<<"\n    Z="<<pose[2]);
+
+		createmesh();
+
+		// Construct and run pick/place task
+		moveit_task_constructor_demo::PickPlaceTask pick_place_task("pick_place_task", nh);
+		pick_place_task.mesh_height = mesh_height;
+		pick_place_task.loadParameters();
+		pick_place_task.init();
+		ROS_INFO("DEBUG: INIT COMPLETED");
+		if (pick_place_task.plan()) {
+			ROS_INFO_NAMED(LOGNAME, "Planning succeded");
+			if (pnh.param("execute", false)) {
+				pick_place_task.execute();
+			} else {
+				ROS_INFO_NAMED(LOGNAME, "Execution disabled");
+			}
 		} else {
-			ROS_INFO_NAMED(LOGNAME, "Execution disabled");
+			ROS_INFO_NAMED(LOGNAME, "Planning failed");
 		}
-	} else {
-		ROS_INFO_NAMED(LOGNAME, "Planning failed");
-	}
 
-	ROS_INFO_NAMED(LOGNAME, "Execution complete");
+		ROS_INFO_NAMED(LOGNAME, "Execution complete");
 
 	// Keep introspection alive
 	ros::waitForShutdown();

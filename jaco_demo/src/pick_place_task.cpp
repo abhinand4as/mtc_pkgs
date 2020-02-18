@@ -36,6 +36,7 @@
 
 #include <jaco_demo/pick_place_task.h>
 #include <rosparam_shortcuts/rosparam_shortcuts.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 namespace moveit_task_constructor_demo {
 constexpr char LOGNAME[] = "pick_place_task";
@@ -150,16 +151,22 @@ void PickPlaceTask::init() {
 		t.add(std::move(stage));
 	}
 
+
+	
+
 	/****************************************************
 	 *                                                  *
 	 *               Move to Pick                       *
 	 *                                                  *
 	 ***************************************************/
+
+
 	{  // Move-to pre-grasp
 		auto stage = std::make_unique<stages::Connect>(
 		    "move to pick", stages::Connect::GroupPlannerVector{ { arm_group_name_, sampling_planner } });
 		stage->setTimeout(5.0);
 		stage->properties().configureInitFrom(Stage::PARENT);
+		// current_state = stage.get();
 		t.add(std::move(stage));
 	}
 
@@ -208,7 +215,7 @@ void PickPlaceTask::init() {
 			// Compute IK
 			auto wrapper = std::make_unique<stages::ComputeIK>("grasp pose IK", std::move(stage));
 			wrapper->setMaxIKSolutions(8);
-			wrapper->setIgnoreCollisions(false);
+			wrapper->setIgnoreCollisions(true);
 			wrapper->setMinSolutionDistance(1.0);
 			wrapper->setIKFrame(grasp_frame_transform_, hand_frame_);
 			wrapper->properties().configureInitFrom(Stage::PARENT, { "eef", "group" });

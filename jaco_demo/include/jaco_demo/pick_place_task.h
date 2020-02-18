@@ -83,7 +83,6 @@ using namespace moveit::task_constructor;
 		bool plan();
 
 		bool execute();
-
 	private:
 		ros::NodeHandle nh_;
 
@@ -122,5 +121,6 @@ using namespace moveit::task_constructor;
 		// Place metrics
 		geometry_msgs::Pose place_pose_;
 		double place_surface_offset_;
+
 	};
 }  // moveit_task_constructor_demo
