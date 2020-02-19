@@ -54,8 +54,11 @@
 
 //TF2
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+
+constexpr char LOGNAME[] = "moveit_task_constructor_demo";
+float mesh_height = 0;
+float pose[3];
 ros::Subscriber box_pose_sub;
-float pose[3]; //{1., 2., 3.};
 
 void poseCallback(const std_msgs::Float32MultiArray::ConstPtr& array)
 {
@@ -71,8 +74,6 @@ void poseCallback(const std_msgs::Float32MultiArray::ConstPtr& array)
 	return;
 }
 
-constexpr char LOGNAME[] = "moveit_task_constructor_demo";
-float mesh_height = 0;
 
 double computeMeshHeight(const shape_msgs::Mesh& mesh) {
 	double x,y,z;
@@ -127,48 +128,48 @@ moveit_msgs::CollisionObject createTable() {
 	return object;
 }
 
-moveit_msgs::CollisionObject createObject() {
-	ros::NodeHandle pnh("~");
-	std::string object_name, object_reference_frame;
-	std::vector<double> object_dimensions;
-	geometry_msgs::Pose pose;
-	std::size_t error = 0;
-	error += !rosparam_shortcuts::get(LOGNAME, pnh, "object_name", object_name);
-	error += !rosparam_shortcuts::get(LOGNAME, pnh, "object_reference_frame", object_reference_frame);
-	error += !rosparam_shortcuts::get(LOGNAME, pnh, "object_dimensions", object_dimensions);
-	error += !rosparam_shortcuts::get(LOGNAME, pnh, "object_pose", pose);
-	rosparam_shortcuts::shutdownIfError(LOGNAME, error);
+// moveit_msgs::CollisionObject createObject() {
+// 	ros::NodeHandle pnh("~");
+// 	std::string object_name, object_reference_frame;
+// 	std::vector<double> object_dimensions;
+// 	geometry_msgs::Pose pose;
+// 	std::size_t error = 0;
+// 	error += !rosparam_shortcuts::get(LOGNAME, pnh, "object_name", object_name);
+// 	error += !rosparam_shortcuts::get(LOGNAME, pnh, "object_reference_frame", object_reference_frame);
+// 	error += !rosparam_shortcuts::get(LOGNAME, pnh, "object_dimensions", object_dimensions);
+// 	error += !rosparam_shortcuts::get(LOGNAME, pnh, "object_pose", pose);
+// 	rosparam_shortcuts::shutdownIfError(LOGNAME, error);
 
-	moveit_msgs::CollisionObject object;
-	object.id = object_name;
-	object.header.frame_id = object_reference_frame;
-	object.primitives.resize(1);
-	object.primitives[0].type = shape_msgs::SolidPrimitive::CYLINDER;
-	object.primitives[0].dimensions = object_dimensions;
-	pose.position.z += 0.5 * object_dimensions[0];
-	object.primitive_poses.push_back(pose);
-	return object;
-}
+// 	moveit_msgs::CollisionObject object;
+// 	object.id = object_name;
+// 	object.header.frame_id = object_reference_frame;
+// 	object.primitives.resize(1);
+// 	object.primitives[0].type = shape_msgs::SolidPrimitive::CYLINDER;
+// 	object.primitives[0].dimensions = object_dimensions;
+// 	pose.position.z += 0.5 * object_dimensions[0];
+// 	object.primitive_poses.push_back(pose);
+// 	return object;
+// }
 
-moveit_msgs::CollisionObject createcube() {
-	ros::NodeHandle pnh("~");
-	moveit_msgs::CollisionObject cube;
-	cube.id = "cube";
-	cube.header.frame_id = "world";
-	cube.primitive_poses.resize(1);
-	cube.primitive_poses[0].position.x = 0.1;
-	cube.primitive_poses[0].position.y = 0.35;
-	cube.primitive_poses[0].position.z = 0.09;
-	cube.primitive_poses[0].orientation.w = 1.0;
-	cube.primitives.resize(1);
-	cube.primitives[0].type = shape_msgs::SolidPrimitive::BOX;
-	cube.primitives[0].dimensions.resize(3);
-	cube.primitives[0].dimensions[0] = 0.03;
-	cube.primitives[0].dimensions[1] = 0.03;
-	cube.primitives[0].dimensions[2] = 0.18;
-	return cube;
+// moveit_msgs::CollisionObject createcube() {
+// 	ros::NodeHandle pnh("~");
+// 	moveit_msgs::CollisionObject cube;
+// 	cube.id = "cube";
+// 	cube.header.frame_id = "world";
+// 	cube.primitive_poses.resize(1);
+// 	cube.primitive_poses[0].position.x = 0.1;
+// 	cube.primitive_poses[0].position.y = 0.35;
+// 	cube.primitive_poses[0].position.z = 0.09;
+// 	cube.primitive_poses[0].orientation.w = 1.0;
+// 	cube.primitives.resize(1);
+// 	cube.primitives[0].type = shape_msgs::SolidPrimitive::BOX;
+// 	cube.primitives[0].dimensions.resize(3);
+// 	cube.primitives[0].dimensions[0] = 0.03;
+// 	cube.primitives[0].dimensions[1] = 0.03;
+// 	cube.primitives[0].dimensions[2] = 0.18;
+// 	return cube;
 
-}
+// }
 	
 void createmesh() {
 	const double table_height= 0;
@@ -222,40 +223,41 @@ int main(int argc, char** argv) {
 	ros::Duration(1.0).sleep();  // Wait for ApplyPlanningScene service
 	moveit::planning_interface::PlanningSceneInterface psi;
 	ros::NodeHandle pnh("~");
-	ROS_INFO_STREAM("POSE X="<<pose[0]<<"\n    Y="<<pose[1]<<"\n    Z="<<pose[2]);
+
 	if (pnh.param("spawn_table", true))
 		spawnObject(psi, createTable());
 	// spawnObject(psi, createObject());
     // spawnObject(psi, createcube());
+
 	do {
 		ROS_INFO("INSIDE DO");
 		ros::Duration(1.0).sleep();
 	} while(pose[0] ==0 && pose[1] ==0 && pose[2] ==0 );
 
-		ROS_INFO_STREAM("POSE X="<<pose[0]<<"\n    Y="<<pose[1]<<"\n    Z="<<pose[2]);
+	ROS_INFO_STREAM("POSE X="<<pose[0]<<"\n    Y="<<pose[1]<<"\n    Z="<<pose[2]);
 
-		createmesh();
+	createmesh();
 
-		// Construct and run pick/place task
-		moveit_task_constructor_demo::PickPlaceTask pick_place_task("pick_place_task", nh);
-		pick_place_task.mesh_height = mesh_height;
-		pick_place_task.loadParameters();
-		pick_place_task.init();
-		ROS_INFO("DEBUG: INIT COMPLETED");
-		if (pick_place_task.plan()) {
-			ROS_INFO_NAMED(LOGNAME, "Planning succeded");
-			if (pnh.param("execute", false)) {
-				pick_place_task.execute();
-			} else {
-				ROS_INFO_NAMED(LOGNAME, "Execution disabled");
-			}
+	// Construct and run pick/place task
+	moveit_task_constructor_demo::PickPlaceTask pick_place_task("pick_place_task", nh);
+	pick_place_task.mesh_height = mesh_height;
+	pick_place_task.loadParameters();
+	pick_place_task.init();
+	ROS_INFO("DEBUG: INIT COMPLETED");
+	if (pick_place_task.plan()) {
+		ROS_INFO_NAMED(LOGNAME, "Planning succeded");
+		if (pnh.param("execute", false)) {
+			pick_place_task.execute();
 		} else {
-			ROS_INFO_NAMED(LOGNAME, "Planning failed");
+			ROS_INFO_NAMED(LOGNAME, "Execution disabled");
 		}
+	} else {
+		ROS_INFO_NAMED(LOGNAME, "Planning failed");
+	}
 
-		ROS_INFO_NAMED(LOGNAME, "Execution complete");
+	ROS_INFO_NAMED(LOGNAME, "Execution complete");
 
-	// Keep introspection alive
-	ros::waitForShutdown();
-	return 0;
+// Keep introspection alive
+ros::waitForShutdown();
+return 0;
 }
