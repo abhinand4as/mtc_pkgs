@@ -36,3 +36,6 @@ target_link_libraries(pick_place_tutorial2 ${catkin_LIBRARIES})
 
 add_executable(pouring src/pouring_sample.cpp)
 target_link_libraries(pouring ${catkin_LIBRARIES})
+
+#add_executable(generate_pose_with_constrain src/generate_pose_with_constrain)
+#target_link_libraries(generate_pose_with_constrain ${catkin_LIBRARIES})
