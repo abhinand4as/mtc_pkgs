@@ -44,13 +44,14 @@
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <rosparam_shortcuts/rosparam_shortcuts.h>
 #include <tf2_ros/transform_broadcaster.h>
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 // Mesh
 #include "geometric_shapes/shapes.h"
 #include "geometric_shapes/mesh_operations.h"
 #include "geometric_shapes/shape_operations.h"
 #include <geometric_shapes/shape_extents.h>
-
 constexpr char LOGNAME[] = "moveit_task_constructor_demo";
 float mesh_height = 0;
 
@@ -158,7 +159,10 @@ void createmesh() {
 	bottle.pose.position.x= 0.4;
 	bottle.pose.position.y= 0.15;
 	bottle.pose.position.z= table_height;
-	bottle.pose.orientation.w= 1.0;
+
+	tf2::Quaternion quat;
+	quat.setRPY(0, 0, M_PI/2);
+	bottle.pose.orientation = tf2::toMsg(quat);
 
 	moveit::planning_interface::PlanningSceneInterface psi;
 	std::vector<moveit_msgs::CollisionObject> objects;
