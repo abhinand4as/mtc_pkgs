@@ -207,7 +207,7 @@ void PickPlaceTask::init() {
 			stage->properties().set("marker_ns", "grasp_pose");
 			stage->setPreGraspPose(hand_open_pose_);
 			stage->setObject(object);
-			stage->setAngleDelta(M_PI / 2);
+			stage->setAngleDelta(2 * M_PI);           //<------ Restrict into only one pose ---------->
 			stage->setMonitoredStage(current_state);  // Hook into current state
 
 			// Compute IK

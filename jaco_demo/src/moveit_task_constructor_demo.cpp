@@ -127,55 +127,12 @@ moveit_msgs::CollisionObject createTable() {
 	object.primitive_poses.push_back(pose);
 	return object;
 }
-
-// moveit_msgs::CollisionObject createObject() {
-// 	ros::NodeHandle pnh("~");
-// 	std::string object_name, object_reference_frame;
-// 	std::vector<double> object_dimensions;
-// 	geometry_msgs::Pose pose;
-// 	std::size_t error = 0;
-// 	error += !rosparam_shortcuts::get(LOGNAME, pnh, "object_name", object_name);
-// 	error += !rosparam_shortcuts::get(LOGNAME, pnh, "object_reference_frame", object_reference_frame);
-// 	error += !rosparam_shortcuts::get(LOGNAME, pnh, "object_dimensions", object_dimensions);
-// 	error += !rosparam_shortcuts::get(LOGNAME, pnh, "object_pose", pose);
-// 	rosparam_shortcuts::shutdownIfError(LOGNAME, error);
-
-// 	moveit_msgs::CollisionObject object;
-// 	object.id = object_name;
-// 	object.header.frame_id = object_reference_frame;
-// 	object.primitives.resize(1);
-// 	object.primitives[0].type = shape_msgs::SolidPrimitive::CYLINDER;
-// 	object.primitives[0].dimensions = object_dimensions;
-// 	pose.position.z += 0.5 * object_dimensions[0];
-// 	object.primitive_poses.push_back(pose);
-// 	return object;
-// }
-
-// moveit_msgs::CollisionObject createcube() {
-// 	ros::NodeHandle pnh("~");
-// 	moveit_msgs::CollisionObject cube;
-// 	cube.id = "cube";
-// 	cube.header.frame_id = "world";
-// 	cube.primitive_poses.resize(1);
-// 	cube.primitive_poses[0].position.x = 0.1;
-// 	cube.primitive_poses[0].position.y = 0.35;
-// 	cube.primitive_poses[0].position.z = 0.09;
-// 	cube.primitive_poses[0].orientation.w = 1.0;
-// 	cube.primitives.resize(1);
-// 	cube.primitives[0].type = shape_msgs::SolidPrimitive::BOX;
-// 	cube.primitives[0].dimensions.resize(3);
-// 	cube.primitives[0].dimensions[0] = 0.03;
-// 	cube.primitives[0].dimensions[1] = 0.03;
-// 	cube.primitives[0].dimensions[2] = 0.18;
-// 	return cube;
-
-// }
 	
 void createmesh() {
 	const double table_height= 0;
 
 	tf2::Quaternion orientation;
-	orientation.setRPY(0, 0 , 0);
+	orientation.setRPY(0, 0 , 3.14);
 
 	geometry_msgs::PoseStamped bottle;
 	bottle.header.frame_id= "world";
@@ -183,12 +140,14 @@ void createmesh() {
 	bottle.pose.position.y= pose[1];//0.15;
 	bottle.pose.position.z= pose[2];//table_height;
 	// bottle.pose.orientation= tf2::toMsg(orientation);
+	bottle.pose.orientation= tf2::toMsg(orientation);
+
 
 	moveit::planning_interface::PlanningSceneInterface psi;
 	std::vector<moveit_msgs::CollisionObject> objects;
 	// mtc_pour::setupObjects(objs, bottle, glass, "package://mtc_pour/meshes/small_bottle.stl");
 	// const std::string bottle_mesh="package://jaco_demo/meshes/bottle.stl";
-	const std::string bottle_mesh="package://jaco_demo/meshes/camera4.stl";
+	const std::string bottle_mesh="package://jaco_demo/meshes/camera5.stl";
 
 	{
 		// add bottle

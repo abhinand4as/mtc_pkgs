@@ -30,8 +30,9 @@ table_name: "table"
 table_dimensions: [0.5, 1.0, 0.1]  # [length, width, height]
 table_pose: [0.22, 0.46, -0.001, 0, 0, 0]
 
-# Gripper grasp frame transform [x,y,z,r,p,y]
-grasp_frame_transform: [0, 0, 0.055, -3.14, 0.0, 0.0]
+# Gripper grasp frame transform [x,y,z,r,p,y] 
+# Note change rpy according to object frame of reference.
+grasp_frame_transform: [0, 0, 0.055, 3.14, 0, 0] 
 
 # Place pose [x,y,z,r,p,y]
 place_pose: [0.3, 0.1, 0.01, 0, 0, 0]
