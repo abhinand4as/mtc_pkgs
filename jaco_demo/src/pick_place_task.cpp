@@ -94,7 +94,7 @@ void PickPlaceTask::init() {
 	Task& t = *task_;
 	t.stages()->setName(task_name_);
 	t.loadRobotModel();
-
+	
 	// Sampling planner
 	auto sampling_planner = std::make_shared<solvers::PipelinePlanner>();
 	sampling_planner->setProperty("goal_joint_tolerance", 1e-5);
@@ -202,7 +202,7 @@ void PickPlaceTask::init() {
 			stage->properties().set("marker_ns", "grasp_pose");
 			stage->setPreGraspPose(hand_open_pose_);
 			stage->setObject(object);
-			stage->setAngleDelta(M_PI / 16);
+			stage->setAngleDelta(M_PI);
 			stage->setMonitoredStage(current_state);  // Hook into current state
 
 			// Compute IK

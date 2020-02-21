@@ -161,7 +161,7 @@ void createmesh() {
 	bottle.pose.position.z= table_height;
 
 	tf2::Quaternion quat;
-	quat.setRPY(0, 0, M_PI/2);
+	quat.setRPY(0, 0, 1.57);
 	bottle.pose.orientation = tf2::toMsg(quat);
 
 	moveit::planning_interface::PlanningSceneInterface psi;

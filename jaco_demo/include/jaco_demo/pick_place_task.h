@@ -62,7 +62,6 @@
 #include <actionlib/server/simple_action_server.h>
 
 #include <eigen_conversions/eigen_msg.h>
-
 #pragma once
 
 namespace moveit_task_constructor_demo {
