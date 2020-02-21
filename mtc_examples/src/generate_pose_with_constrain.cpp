@@ -80,7 +80,7 @@ Task createTask() {
     moveit_msgs::Constraints constraint;
 	{
         tf2::Quaternion q;
-        q.setRPY(0 , -M_PI / 2 , -M_PI);
+        q.setRPY(0 , -M_PI / 2 , -M_PI);			//frame of panda_hand w.r.t panda_link0
 
         constraint.name = "dont_spill";
         constraint.orientation_constraints.resize(1);
@@ -88,9 +88,9 @@ Task createTask() {
         c.header.frame_id = "panda_link0";
         c.link_name = "panda_hand";
 		c.orientation = tf2::toMsg(q);
-        c.absolute_x_axis_tolerance = M_PI;// 0.2;
+        c.absolute_x_axis_tolerance = M_PI;  		//tolerance of panda_hand frame
         c.absolute_y_axis_tolerance = 0.2;
-        c.absolute_z_axis_tolerance = 0.2;//M_PI;
+        c.absolute_z_axis_tolerance = 0.2;
 		c.weight = 1.0;
         
 	}
